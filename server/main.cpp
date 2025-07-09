@@ -1,10 +1,15 @@
 #include <iostream>
 #include "TCPServer.h"
 
-int main()
+int main(int argc, char **argv)
 {
     try{
-        TCPServer server{12345};
+        if(argc < 2)
+        {
+            throw std::runtime_error{"Not enough arguments given\n"};
+        }
+
+        TCPServer server{atoi(argv[1])};
         server.start();
 
     }

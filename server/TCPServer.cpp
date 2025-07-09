@@ -36,10 +36,8 @@ void TCPServer::start()
             throw std::runtime_error{"Accept failed\n"};
         }
         std::cout<<"Client connected\n";
-        std::thread([client_socket](){
-            ClientHandler handler(client_socket);
-            handler.handle();
-        }).detach();
+        ClientHandler handler{client_socket};
+        handler.handle();
     }
     this->stop();
     
