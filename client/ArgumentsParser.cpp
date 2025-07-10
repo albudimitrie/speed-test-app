@@ -42,11 +42,22 @@ void ArgParser::parse_args(int argc, char* argv[]) {
                 throw std::runtime_error{"You can only have -s in Disk tests\n"};
             }
             config.disk_block_size = std::stoi(argv[++i]);
-        } else {
+        } else if (arg =="-port" && i+1 <argc)
+        {
+            config.port=std::stoi(argv[++i]);
+        } else if( arg == "-host" && i+1 < argc)
+        {
+            config.address=std::string{argv[++i]};
+        }
+        else {
             throw std::runtime_error("Unknown or malformed argument: " + arg);
         }
     }
     if (config.duration_seconds != -1 && config.bytes_to_send != -1) {
     throw std::runtime_error("Cant have -t and -b simultaneously on udp test\n ");
 }
+    if(config.port == -1 || config.address=="EMPTY")
+    {   
+        throw std::runtime_error{"You hhave to provide port and host address!\n"};
+    }
 }

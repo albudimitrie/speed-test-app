@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -pthread
+CXXFLAGS = -std=c++17 -Wall -pthread -Iinclude  
 
 # Folders
 CLIENT_DIR = client
@@ -26,3 +26,4 @@ $(SERVER_BIN): $(SERVER_SRCS)
 # Clean rule
 clean:
 	rm -f $(CLIENT_BIN) $(SERVER_BIN)
+

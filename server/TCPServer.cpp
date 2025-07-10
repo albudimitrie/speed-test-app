@@ -15,7 +15,8 @@ void TCPServer::start()
     }
     sockaddr_in server_address;
     server_address.sin_port=htons(this->_port);
-    server_address.sin_addr.s_addr=INADDR_ANY;
+    server_address.sin_addr.s_addr=htonl(INADDR_ANY);
+    server_address.sin_family=AF_INET;
     if(bind(this->_socket, (const sockaddr *)&server_address, sizeof(server_address))<0)
     {
         throw std::runtime_error{"Bind function failed\n"};
@@ -46,4 +47,16 @@ void TCPServer::stop()
 {
     close(this->_socket);
     this->_running=false;
+}
+
+std::string TCPServer::receive_data(int max_len)
+{
+    char buffer[max_len+1];
+    int n=recv(_socket, buffer, max_len, 0);
+    buffer[n]='\0';
+    return std::string{buffer};
+}
+void TCPServer::send_data(const std::string &data)
+{
+    send(_socket, data.c_str(), data.length(), 0);
 }

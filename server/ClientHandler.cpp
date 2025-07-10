@@ -22,9 +22,7 @@ void ClientHandler::handle()
         }
         buffer[n]='\0';
         std::cout<<"Received from client\n";
-        std::string ack_response{"ACK"};
-        write(this->_client_socket, ack_response.c_str(), ack_response.length());
-        std::cout<<"Sent ack to client\n";
+        //primire fisier configurare de la client
     }
     close(this->_client_socket);
     std::cout<<"Client disconnected\n";

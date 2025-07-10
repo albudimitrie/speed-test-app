@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 class TCPServer
 {
     int _socket;
@@ -12,5 +13,7 @@ public:
     }
     void start();
     void stop();
+    std::string receive_data(int max_len);
+    void send_data(const std::string &data);
 
 };
