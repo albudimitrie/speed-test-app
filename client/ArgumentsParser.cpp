@@ -53,7 +53,7 @@ void ArgParser::parse_args(int argc, char* argv[]) {
             throw std::runtime_error("Unknown or malformed argument: " + arg);
         }
     }
-    if (config.duration_seconds != -1 && config.bytes_to_send != -1) {
+    if (config.duration_seconds != -1 && config.bytes_to_send != UINT64_MAX) {
     throw std::runtime_error("Cant have -t and -b simultaneously on udp test\n ");
 }
     if(config.port == -1 || config.address=="EMPTY")

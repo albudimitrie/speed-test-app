@@ -4,20 +4,16 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include "nlohmann/json.hpp"
+#include <unistd.h>
 using json=nlohmann::json;
 
-TCPDownload::TCPDownload(int duration)
-    :_duration{duration}
+TCPDownload::TCPDownload(int duration, json &stats)
+    :_duration{duration}, _stats{stats}
 {
 
 }
 void TCPDownload::run(int client_socket)
 {
-    //i will send a frame to the client TCP_DOWNLOAD TO LET HIM KNOW WHAT TEST I RUN ON HIM
-    //after getting the request to this, the server will 
-    //transmit data for n seconds based on the duration in 
-    //the config file 
-    //o sa trimit BUFFER_SIZE frames timp de n secunde apoi o sa trimit un frame de stop
     json type;
     type["type"]="TCP_DOWNLOAD";
     send(client_socket, type.dump().c_str(), 1024, 0);
@@ -34,11 +30,11 @@ void TCPDownload::run(int client_socket)
         auto now= std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::seconds>(now -start).count() >= total_duration)
         {
-            send(client_socket, ending_buffer,1024, 0);
             break;
         }
     }
     char result[1024];
+    shutdown(client_socket, SHUT_WR);
     int n=recv(client_socket, result, 1024, 0);
     if(n<0)
     {
@@ -47,7 +43,13 @@ void TCPDownload::run(int client_socket)
     result[n]='\0';
     std::string res_str{result};
     json res_json = json::parse(res_str);
-    int total_received=res_json["total_received"];
-    //TODO CALCULEAZA THROUGHPUT
-    //TODO ar trebui sa fac sa primesc de la client cat a primit si sa calculez ca sa pun in report, asta o sa faca TestManagerul
+    uint64_t total_received = res_json.at("total_received").get<uint64_t>();
+    std::cout<<"Clientul a primit "<<total_received<<"\n";
+    double Mbps = (total_received * 8.0) /(_duration * 1000000);
+    double MBps = (total_received) / (_duration * 1000000);
+    _stats["TCP_DOWNLOAD"]["Mbps"]=Mbps;
+    _stats["TCP_DOWNLOAD"]["MBps"]=MBps;
+    _stats["TCP_DOWNLOAD"]["duration"]=_duration;
+    std::cout<<"Mbps:"<<Mbps<<std::endl;
+    std::cout<<"MBps:"<<MBps<<std::endl;
 }

@@ -1,5 +1,7 @@
-#include "TCPClient.h"
+#pragma once
 #include <string>
+
+class TCPClient;
 class iTest
 {
 protected:
@@ -13,5 +15,5 @@ public:
 class TestFactory
 {
 public:
-    static iTest *makeTCPDownloadTest();
+    static iTest *makeTCPDownloadTest(int duration);
 };

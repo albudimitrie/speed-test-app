@@ -1,3 +1,4 @@
+#pragma once
 #include "ArgumentsParser.h"
 #include "TCPClient.h"
 #include <map>

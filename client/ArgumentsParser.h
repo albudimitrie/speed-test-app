@@ -1,5 +1,7 @@
+#pragma once
 #include <iostream>
 #include <string>
+#include <cstdint>
 
 enum class TestType { None, Network, Disk };
 enum class Protocol { None, TCP, UDP };
@@ -10,7 +12,7 @@ struct ClientConfig {
     bool json_output = false;
 
     int duration_seconds = 10;
-    int bytes_to_send = -1;
+    uint64_t bytes_to_send = UINT64_MAX;
 
     int disk_block_size = -1;
     //TODO adaugare port

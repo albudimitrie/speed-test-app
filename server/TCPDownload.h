@@ -1,11 +1,14 @@
+#pragma once
 #include "iTest.h"
 #include "chrono"
-#define BUFFER_SIZE 1024*32
+#include "nlohmann/json.hpp"
+using json=nlohmann::json;
 class TCPDownload : public iTest
 {
     int _duration;
+    json &_stats;
 public:
-    TCPDownload(int duration);
+    TCPDownload(int duration, json &stats);
     virtual void run(int client_socket) override;
     virtual ~TCPDownload()=default;
 

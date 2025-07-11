@@ -1,5 +1,10 @@
+#pragma once
 #include <string>
 #include "TCPServer.h"
+#include <unistd.h>
+#include <cstdint>
+
+class iTest;
 enum class TestType { None, Network, Disk };
 enum class Protocol { None, TCP, UDP };
 
@@ -9,14 +14,20 @@ struct ClientConfig {
     bool json_output = false;
 
     int duration_seconds = 10;
-    int bytes_to_send = -1;
+    uint64_t bytes_to_send = UINT64_MAX;
 
     int disk_block_size = -1;
 };
 class TestManager
 {
+    int _socket;
     ClientConfig _config;
+    void run_tcp_test(int duration);
+    void run_udp_test(int duration, uint64_t bytes_to_send);
+    void run_udp_time_test(int duration);
+    void run_udp_size_test(int duration);
 public:
     TestManager()=default;
     void receive_and_parse_client_config(TCPServer &server);
+    void run_test();
 };

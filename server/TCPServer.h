@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <string>
 class TCPServer
@@ -11,6 +12,7 @@ public:
         _port=port;
         _running=false;
     }
+    int get_socket() { return _socket;}
     void start();
     void stop();
     std::string receive_data(int max_len);

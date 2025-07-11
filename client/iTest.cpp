@@ -1,6 +1,6 @@
 #include "iTest.h"
 #include "TCPDownload.h"
-iTest *TestFactory::makeTCPDownloadTest()
+iTest *TestFactory::makeTCPDownloadTest(int duration)
 {
-    return new TCPDownload{};
+    return new TCPDownload{duration};
 }

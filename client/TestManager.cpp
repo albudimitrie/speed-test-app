@@ -11,10 +11,11 @@ void TestManager::add_test(iTest *test)
 TestManager::TestManager(ClientConfig &config)
     :_config{config}
 {
-    add_test(TestFactory::makeTCPDownloadTest());
+    add_test(TestFactory::makeTCPDownloadTest(config.duration_seconds));
 }
 void TestManager::send_config_to_server(TCPClient &client)
 {   
+    std::cout<<"Sent config file\n";
     json config_json;
     if(_config.test_type == TestType::Network)
     {
@@ -39,6 +40,7 @@ void TestManager::send_config_to_server(TCPClient &client)
 std::string TestManager::receive_results_from_server(TCPClient &client)
 {
     //TODO
+    return std::string{};
 
 }
 void TestManager::print_statistics()

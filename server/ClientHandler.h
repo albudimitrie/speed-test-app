@@ -1,10 +1,12 @@
+#pragma once
 #include <iostream>
+#include "TCPServer.h"
 
 class ClientHandler
 {
-    int _client_socket;
+    TCPServer & _server;
 public:
-    ClientHandler(int socket);
+    ClientHandler(TCPServer &server);
     void handle();
 
 };
