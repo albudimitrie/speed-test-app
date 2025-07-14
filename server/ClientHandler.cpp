@@ -14,11 +14,7 @@ ClientHandler::ClientHandler(TCPServer &server)
 }
 void ClientHandler::handle()
 {
-    char buffer[SIZE];
-    TestManager test_manager;
+    TestManager test_manager{_server.get_client_addr()};
     test_manager.receive_and_parse_client_config(_server);
     test_manager.run_test();
-    //primire fisier configurare de la client
-        
-
 }

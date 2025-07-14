@@ -12,6 +12,10 @@ TestManager::TestManager(ClientConfig &config)
     :_config{config}
 {
     add_test(TestFactory::makeTCPDownloadTest(config.duration_seconds));
+    add_test(TestFactory::makeTCPUploadSizeTest(config.bytes_to_send));
+    add_test(TestFactory::makeTCPUploadTimeTest(config.duration_seconds));
+    add_test(TestFactory::makeTCPLatencyTest());
+    add_test(TestFactory::makeUDPDownloadTest(config.duration_seconds, config.bytes_to_send));
 }
 void TestManager::send_config_to_server(TCPClient &client)
 {   
@@ -58,6 +62,7 @@ void TestManager::start_test(TCPClient &client)
     //UPLOAD TEST FOR NETTEST
     if(_config.test_type==TestType::Network)
     {
+        std::cout<<"Choosing next test\n";
         iTest * test= choose_test_type(client);
         test->run(client);
     }
@@ -79,6 +84,7 @@ void TestManager::start_test(TCPClient &client)
 iTest * TestManager::choose_test_type(TCPClient &client)
 {
     std::string test=client.receive_data(SIZE);
+    std::cout<<std::endl<<test<<std::endl;
     json test_json = json::parse(test);
     iTest *t = _existing_tests[test_json["type"]];
     return t;

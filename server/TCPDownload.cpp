@@ -4,7 +4,9 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include "nlohmann/json.hpp"
-#include <unistd.h>
+#include <unistd.h> 
+#include "SocketManager.h"
+
 using json=nlohmann::json;
 
 TCPDownload::TCPDownload(int duration, json &stats)
@@ -14,10 +16,14 @@ TCPDownload::TCPDownload(int duration, json &stats)
 }
 void TCPDownload::run(int client_socket)
 {
-    json type;
+    SocketManager sm;
+    json type,port;
     type["type"]="TCP_DOWNLOAD";
+    port["port"]=DOWNLOAD_PORT;
     send(client_socket, type.dump().c_str(), 1024, 0);
-
+    int new_socket =sm.createTcpSocket(DOWNLOAD_PORT);
+    send(client_socket, port.dump().c_str(), 1024, 0);
+    int test_socket = sm.acceptClient(new_socket);
 
     int total_duration=this->_duration;
     char buffer[BUFFER_SIZE+1];
@@ -26,7 +32,7 @@ void TCPDownload::run(int client_socket)
     auto start=std::chrono::steady_clock::now();
     while(true)
     {
-        send(client_socket, buffer, BUFFER_SIZE, 0);
+        sm.sendData(test_socket, buffer, BUFFER_SIZE);
         auto now= std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::seconds>(now -start).count() >= total_duration)
         {
@@ -34,7 +40,8 @@ void TCPDownload::run(int client_socket)
         }
     }
     char result[1024];
-    shutdown(client_socket, SHUT_WR);
+    shutdown(test_socket, SHUT_RDWR);
+    sm.closeSocket(test_socket);
     int n=recv(client_socket, result, 1024, 0);
     if(n<0)
     {

@@ -40,6 +40,9 @@ void TCPServer::start()
         sockaddr_in client_addr;
         socklen_t client_len=sizeof(client_addr);
         int client_socket= accept(sock, (sockaddr *)&client_addr, &client_len);
+        char ip_str[INET_ADDRSTRLEN + 1];
+        inet_ntop(AF_INET, &client_addr.sin_addr, ip_str, INET_ADDRSTRLEN);
+        _client_addr=ip_str;
         this->_socket=client_socket;
         if(client_socket < 0)
         {
@@ -48,6 +51,7 @@ void TCPServer::start()
         std::cout<<"Client connected\n";
         ClientHandler handler{*this};
         handler.handle();
+        this->_running=false;//after the results the app is gonna stop
     }
     this->stop();
     

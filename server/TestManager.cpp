@@ -40,7 +40,7 @@ void TestManager::run_test()
     {
         if(_config.protocol == Protocol::TCP)
         {
-            run_tcp_test(_config.duration_seconds);
+            run_tcp_test(_config.duration_seconds, _config.bytes_to_send);
         }
         else if(_config.protocol == Protocol::UDP)
         {
@@ -55,7 +55,7 @@ void TestManager::run_test()
 
 }
 
-void TestManager::run_tcp_test(int duration)
+void TestManager::run_tcp_test(int duration, uint64_t bytes_to_send)
 {
     std::cout<<"Starting tcp download test\n";
     json stats;
@@ -63,6 +63,11 @@ void TestManager::run_tcp_test(int duration)
     try{
     iTest *download_tcp = TestFactory::makeTcpDownloadTest(duration, stats);
     download_tcp->run(_socket);
+    iTest *upload_tcp = TestFactory::makeTcpUploadTest(duration, bytes_to_send, stats, _client_addr);
+    upload_tcp->run(_socket);
+    iTest *latency_tcp=TestFactory::makeTCPLatencyTest(stats);
+    latency_tcp->run(_socket);
+
     //TODO primire rezultat
     //todo salvare rezultat intr o structura(json obj)
     }
@@ -75,5 +80,16 @@ void TestManager::run_tcp_test(int duration)
 
 void TestManager::run_udp_test(int duration, uint64_t bytes_to_send)
 {
-    
+    std::cout<<"Starting UDP Download test\n";
+    json stats;
+    try
+    {
+        iTest *download_udp = TestFactory::makeUDPDownloadTest(duration, bytes_to_send,stats,_client_addr );
+        download_udp->run(_socket);
+
+    }
+    catch(std::exception &e)
+    {
+        std::cout<<e.what();
+    }
 }

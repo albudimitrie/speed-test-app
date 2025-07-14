@@ -11,7 +11,7 @@ struct ClientConfig {
     Protocol protocol = Protocol::None;
     bool json_output = false;
 
-    int duration_seconds = 10;
+    int duration_seconds = -1;
     uint64_t bytes_to_send = UINT64_MAX;
 
     int disk_block_size = -1;

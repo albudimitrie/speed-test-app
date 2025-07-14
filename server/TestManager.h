@@ -22,12 +22,13 @@ class TestManager
 {
     int _socket;
     ClientConfig _config;
-    void run_tcp_test(int duration);
+    std::string _client_addr;
+    void run_tcp_test(int duration,uint64_t bytes_to_send);
     void run_udp_test(int duration, uint64_t bytes_to_send);
     void run_udp_time_test(int duration);
     void run_udp_size_test(int duration);
 public:
-    TestManager()=default;
+    TestManager(std::string client_addr) :_client_addr{client_addr}{};
     void receive_and_parse_client_config(TCPServer &server);
     void run_test();
 };

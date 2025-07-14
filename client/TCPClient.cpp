@@ -27,9 +27,15 @@ void TCPClient::connect_to_server()
     }
 }
 
-void TCPClient::send_data(const std::string &data)
+int TCPClient::send_data(const std::string &data)
 {
-    send(this->_client_socket, data.c_str(), data.length(), 0);
+    int n=send(this->_client_socket, data.c_str(), data.length(), 0);
+    return n;
+}
+int TCPClient::send_data(const char *buffer, int len)
+{
+    int n=send(this->_client_socket, buffer, len, 0);
+    return n;
 }
 std::string TCPClient::receive_data(int max_len)
 {
@@ -38,6 +44,10 @@ std::string TCPClient::receive_data(int max_len)
     if( n < 0)
     {
         throw std::runtime_error{"No data received(empty)\n"};
+    }
+    if(n==0)
+    {
+        throw std::runtime_error{"Connection shut down by server\n"};
     }
     buffer[n]='\0';
     return std::string{buffer};

@@ -1,6 +1,7 @@
 #include "ArgumentsParser.h"
 #include <stdexcept>
 #include <string>
+#include "utils.h"
 
 ArgParser::ArgParser(int argc, char* argv[]) {
     parse_args(argc, argv);
@@ -25,23 +26,15 @@ void ArgParser::parse_args(int argc, char* argv[]) {
         } else if (arg == "-json") {
             config.json_output = true;
         } else if (arg == "-t" && i + 1 < argc) {
-            if(config.protocol != Protocol::UDP)
-            {
-                throw std::runtime_error{"You can only have -t in UDP tests\n"};
-            }
             config.duration_seconds = std::stoi(argv[++i]);
         } else if (arg == "-b" && i + 1 < argc) {
             if(config.protocol != Protocol::UDP)
             {
                 throw std::runtime_error{"You can only have -b in UDP tests\n"};
             }
-            config.bytes_to_send = std::stoi(argv[++i]);
+            config.bytes_to_send = utils::parseSizeWithSuffix(argv[++i]);
         } else if (arg == "-s" && i + 1 < argc) {
-            if(config.test_type != TestType::Disk)
-            {
-                throw std::runtime_error{"You can only have -s in Disk tests\n"};
-            }
-            config.disk_block_size = std::stoi(argv[++i]);
+            config.disk_block_size = utils::parseSizeWithSuffix(argv[++i]);
         } else if (arg =="-port" && i+1 <argc)
         {
             config.port=std::stoi(argv[++i]);

@@ -8,6 +8,7 @@ using json=nlohmann::json;
 
 class TCPUpload : public iTest
 {
+    std::string _client_addr;
     json &config;
     int _duration;
     uint64_t _bytes_to_send;
@@ -15,7 +16,7 @@ class TCPUpload : public iTest
     void run_size_based_test(int client_socket);
 
 public:
-    TCPUpload(json &config, int duration, uint64_t bytes_to_send);
+    TCPUpload(json &config, int duration, uint64_t bytes_to_send, std::string _client_addr);
     virtual ~TCPUpload()=default;
     virtual void run(int client_socket) override;
 
