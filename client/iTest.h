@@ -6,6 +6,9 @@
 #define UPLOAD_PORT 12347
 #define LATENCY_PORT 12348
 
+#include "nlohmann/json.hpp"
+using json=nlohmann::json;
+
 class TCPClient;
 class iTest
 {
@@ -25,4 +28,5 @@ public:
     static iTest *makeTCPUploadTimeTest(int duration);
     static iTest *makeTCPLatencyTest();
     static iTest *makeUDPDownloadTest(int duration, uint64_t bytes_to_send);
+    static iTest *makeDiskTest(uint64_t block_size, bool read, bool write,uint64_t file_size,json &stats);
 };

@@ -1,6 +1,7 @@
 #include "TestManager.h"
 #include "nlohmann/json.hpp"
 #include "iTest.h"
+#include "SocketManager.h"
 
 using json=nlohmann::json;
 void TestManager::receive_and_parse_client_config(TCPServer &server)
@@ -47,6 +48,7 @@ void TestManager::run_test()
             run_udp_test(_config.duration_seconds, _config.bytes_to_send);
             
         }
+
     }
     else{
         std::cout<<"None or disktest provided\nIdle state\n";
@@ -67,9 +69,12 @@ void TestManager::run_tcp_test(int duration, uint64_t bytes_to_send)
     upload_tcp->run(_socket);
     iTest *latency_tcp=TestFactory::makeTCPLatencyTest(stats);
     latency_tcp->run(_socket);
+    send_results_to_client(stats);
 
-    //TODO primire rezultat
-    //todo salvare rezultat intr o structura(json obj)
+
+    delete download_tcp;
+    delete upload_tcp;
+    delete latency_tcp;
     }
     catch(std::exception &e)
     {
@@ -87,9 +92,20 @@ void TestManager::run_udp_test(int duration, uint64_t bytes_to_send)
         iTest *download_udp = TestFactory::makeUDPDownloadTest(duration, bytes_to_send,stats,_client_addr );
         download_udp->run(_socket);
 
+        send_results_to_client(stats);
+        delete download_udp;
     }
     catch(std::exception &e)
     {
         std::cout<<e.what();
     }
+}
+
+void TestManager::send_results_to_client(json &stats)
+{
+    SocketManager sm;
+    std::string stats_str = stats.dump();
+    int len = stats_str.length();
+    sm.sendData(_socket, (char *)stats_str.c_str(),len);
+
 }

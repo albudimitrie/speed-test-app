@@ -3,7 +3,8 @@
 #include "TCPServer.h"
 #include <unistd.h>
 #include <cstdint>
-
+#include "nlohmann/json.hpp"
+using json=nlohmann::json;
 class iTest;
 enum class TestType { None, Network, Disk };
 enum class Protocol { None, TCP, UDP };
@@ -30,5 +31,6 @@ class TestManager
 public:
     TestManager(std::string client_addr) :_client_addr{client_addr}{};
     void receive_and_parse_client_config(TCPServer &server);
+    void send_results_to_client(json &stats);
     void run_test();
 };

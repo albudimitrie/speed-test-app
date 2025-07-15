@@ -42,6 +42,22 @@ void ArgParser::parse_args(int argc, char* argv[]) {
         {
             config.address=std::string{argv[++i]};
         }
+        else if(arg=="-read")
+        {
+            config.read=true;
+        }
+        else if(arg=="-write" )
+        {
+            config.write=true;
+        }
+        else if(arg=="-fsize" && i+1 < argc)
+        {
+            if(config.test_type != TestType::Disk)
+            {
+                throw std::runtime_error{"You can have filesize only in Disktest\n"};
+            }
+            config.fsize=utils::parseSizeWithSuffix(argv[++i]);
+        }
         else {
             throw std::runtime_error("Unknown or malformed argument: " + arg);
         }
@@ -49,8 +65,28 @@ void ArgParser::parse_args(int argc, char* argv[]) {
     if (config.duration_seconds != -1 && config.bytes_to_send != UINT64_MAX) {
     throw std::runtime_error("Cant have -t and -b simultaneously on udp test\n ");
 }
-    if(config.port == -1 || config.address=="EMPTY")
+    if((config.port == -1 || config.address=="EMPTY") && config.test_type==TestType::Network)
     {   
-        throw std::runtime_error{"You hhave to provide port and host address!\n"};
+        throw std::runtime_error{"You have to provide port and host address!\n"};
+    }
+    if(config.read == false && config.write == false)
+    {
+        config.read= true;
+        config.write= true;
+    }
+    if(config.test_type==TestType::Network)
+    {
+        if(config.duration_seconds ==-1  && config.bytes_to_send==UINT64_MAX)
+        {
+            config.duration_seconds =10;
+            //setting default value
+        }
+    }
+    if(config.test_type== TestType::Disk)
+    {
+        if(config.disk_block_size == UINT64_MAX)
+        {
+            config.disk_block_size = 8*1024*1024;
+        }
     }
 }

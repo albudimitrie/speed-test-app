@@ -7,7 +7,7 @@
 
 
 UDPDownload::UDPDownload(int duration, uint64_t bytes_to_send, json &stats, std::string client_addr)
-    :_duration{duration}, _bytes_to_send{bytes_to_send}, _config{_config}, _client_addr{client_addr}
+    :_duration{duration}, _bytes_to_send{bytes_to_send}, _config{stats}, _client_addr{client_addr}
 {
 
 }
@@ -29,8 +29,6 @@ void UDPDownload::run_udp_size_test(int client_socket)
     SocketManager sm;
     json type;
     type["type"]="UDP_DOWNLOAD";
-    //added some delay for synchronizing the client-server tansmission/reception
-    //the frames were sent so fast that the client couldnt process them quick enough
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
     int test_socket=sm.createUdpSocket(DOWNLOAD_PORT);
     sm.sendData(client_socket, (char *)type.dump().c_str(), 128);
@@ -44,10 +42,12 @@ void UDPDownload::run_udp_size_test(int client_socket)
     sm.sendData(client_socket, (char *)port.dump().c_str(), 128);
     uint64_t total_sent = 0;
     std::cout<<"Bytes to send "<<_bytes_to_send<<"\n";
+    int little_delay=10;
+    uint64_t frames_sent= 0;
     while(true)
     {
         json buffer;
-        std::string dummy_payload(900, 'X');
+        std::string dummy_payload(800, 'X');
         buffer["end"]="false";
         buffer["data"]=dummy_payload;
         std::string payload = buffer.dump();
@@ -58,10 +58,12 @@ void UDPDownload::run_udp_size_test(int client_socket)
             for(int i=0; i<512;i++)
             {
                 sm.sendTo(test_socket, (char *)payload.c_str(), payload.size(), _client_addr, DOWNLOAD_PORT);
+                std::this_thread::sleep_for(std::chrono::microseconds(little_delay));
             }
             break;
         }
         int sent=sm.sendTo(test_socket,(char *)payload.c_str(), payload.size(), _client_addr, DOWNLOAD_PORT);
+        frames_sent++;
         total_sent+=sent;
     }
     sm.closeSocket(test_socket);
