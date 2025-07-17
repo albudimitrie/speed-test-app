@@ -82,17 +82,30 @@ void TCPUpload::run_time_based_test(int client_socket)
 }
 void TCPUpload::run_size_based_test(int client_socket)
 {
+    SocketManager sm;
     std::cout<<"Starting TCP UPLOAD TEST\n";
     json type;
     type["type"]="TCP_UPLOAD_SIZE";
     send(client_socket,type.dump().c_str(), 1024, 0);
+    char port_char[1024];
+    int n=sm.receiveData(client_socket, port_char, 1024);
+    if(n<=0)
+    {
+        std::cout<<"Eroare primire port\n";
+        throw std::runtime_error{"Eroare primire port\n"};
+    }
+    std::string port{port_char};
+    json port_json=json::parse(port);
+    int new_port = port_json["port"];
+    std::cout<<"New port "<<new_port<<std::endl;
+    int test_socket= sm.connectTo(_client_addr, new_port);
     uint64_t total_received=0;
     int received=0;
     char buffer[BUFFER_SIZE+1];
     auto start= std::chrono::steady_clock::now();
     while(true)
     {
-        received=recv(client_socket, buffer, BUFFER_SIZE, 0);
+        received=recv(test_socket, buffer, BUFFER_SIZE, 0);
         if(received<=0)
         {
             if(received==0)
@@ -110,9 +123,11 @@ void TCPUpload::run_size_based_test(int client_socket)
             break;
             
         }
+        total_received+=received;
     }
+    sm.closeSocket(test_socket);
     auto now = std::chrono::steady_clock::now();
-    auto elapsed=std::chrono::duration_cast<std::chrono::seconds>(now-start).count();
+    double elapsed = std::chrono::duration<double>(now-start).count();
     double Mbps=(total_received*8)/(elapsed*1000000);
     double MBps=(total_received)/(elapsed*1000000);
     config["TCP_UPLOAD"]["Mbps"]=Mbps;
@@ -120,4 +135,5 @@ void TCPUpload::run_size_based_test(int client_socket)
     config["TCP_UPLOAD"]["duration"]=elapsed;
     std::cout<<"Mbps:"<<Mbps<<std::endl;
     std::cout<<"MBps:"<<MBps<<std::endl;
+    std::cout<<"Duration : "<<elapsed<<std::endl;
 }

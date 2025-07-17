@@ -27,6 +27,8 @@ public:
     static iTest *makeTCPUploadSizeTest(uint64_t bytes_to_send);
     static iTest *makeTCPUploadTimeTest(int duration);
     static iTest *makeTCPLatencyTest();
-    static iTest *makeUDPDownloadTest(int duration, uint64_t bytes_to_send);
+    static iTest *makeUDPDownloadTest(int duration, uint64_t bytes_to_send, uint64_t bitrate_bps);
     static iTest *makeDiskTest(uint64_t block_size, bool read, bool write,uint64_t file_size,json &stats);
+    static iTest *makeUDPLatencytest();
+    static iTest * makeUDPUploadtest(int duration, uint64_t bytes_to_send, uint64_t bitrate_bps);
 };

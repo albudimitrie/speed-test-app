@@ -56,6 +56,7 @@ void DiskTest::read_test()
     }
     generate_file(file_name);
     std::cout<<"---------------Starting the test...----------------\n";
+    std::cout<<"---------------Please wait until the test is done-----------------\n";
     std::ifstream file{file_name, std::ios::in | std::ios::binary};
     uint64_t total_read=0;
     char *buffer = new char[_block_size];

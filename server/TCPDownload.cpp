@@ -18,13 +18,16 @@ void TCPDownload::run(int client_socket)
 {
     SocketManager sm;
     json type,port;
+    if(_duration == -1)
+    {
+        _duration = 10;
+    }
     type["type"]="TCP_DOWNLOAD";
     port["port"]=DOWNLOAD_PORT;
     send(client_socket, type.dump().c_str(), 1024, 0);
     int new_socket =sm.createTcpSocket(DOWNLOAD_PORT);
     send(client_socket, port.dump().c_str(), 1024, 0);
     int test_socket = sm.acceptClient(new_socket);
-
     int total_duration=this->_duration;
     char buffer[BUFFER_SIZE+1];
     char ending_buffer[1024];

@@ -31,6 +31,7 @@ void TestManager::receive_and_parse_client_config(TCPServer &server)
     }
     _config.duration_seconds=config_json["duration"];
     _config.bytes_to_send = config_json["bytes_to_send"].get<uint64_t>();
+    _config.bitrate = config_json["bitrate"].get<uint64_t>();
     _config.disk_block_size= config_json["disk_block_size"];
 }
 
@@ -72,7 +73,7 @@ void TestManager::run_tcp_test(int duration, uint64_t bytes_to_send)
     send_results_to_client(stats);
 
 
-    delete download_tcp;
+    //delete download_tcp;
     delete upload_tcp;
     delete latency_tcp;
     }
@@ -85,15 +86,22 @@ void TestManager::run_tcp_test(int duration, uint64_t bytes_to_send)
 
 void TestManager::run_udp_test(int duration, uint64_t bytes_to_send)
 {
-    std::cout<<"Starting UDP Download test\n";
     json stats;
     try
     {
-        iTest *download_udp = TestFactory::makeUDPDownloadTest(duration, bytes_to_send,stats,_client_addr );
+        iTest *download_udp = TestFactory::makeUDPDownloadTest(duration, bytes_to_send,stats,_client_addr, _config.bitrate );
         download_udp->run(_socket);
 
+        iTest *upload_udp = TestFactory::makeUDPUploadTest(duration, bytes_to_send, stats, _client_addr, _config.bitrate);
+        upload_udp->run(_socket);
+
+        iTest *latency_udp = TestFactory::makeUDPLatencyTest(stats,_client_addr);
+        latency_udp->run(_socket);
+        
         send_results_to_client(stats);
         delete download_udp;
+        delete upload_udp;
+        delete latency_udp;
     }
     catch(std::exception &e)
     {

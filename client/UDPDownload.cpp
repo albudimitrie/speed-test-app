@@ -2,12 +2,18 @@
 #include "TCPClient.h"
 #include "SocketManager.h"
 #include "nlohmann/json.hpp"
+#include <thread>
+
 using json = nlohmann::json;
 
-UDPDownload::UDPDownload(int duration, uint64_t bytes_to_send)
-    :_duration{duration}, _bytes_to_send{bytes_to_send}
+UDPDownload::UDPDownload(int duration, uint64_t bytes_to_send, uint64_t bitrate_bps)
+    :_duration{duration}, _bytes_to_send{bytes_to_send}, _bitrate_bps{bitrate_bps}
 {
     _test_type="UDP_DOWNLOAD";
+    if(_bitrate_bps == 0) 
+    {
+        _bitrate_bps = 20 * 1024 * 1024; 
+    }
 }
 void UDPDownload::run(TCPClient &client)
 {
@@ -39,7 +45,10 @@ void UDPDownload::run_size_test(TCPClient &client)
     uint64_t total_amount = _bytes_to_send;
     uint64_t total_received = 0;
     char buffer[1025];
+    const size_t avg_packet_size = 1024; 
+    auto packet_interval = calculatePacketInterval(avg_packet_size);
     auto start = std::chrono::steady_clock::now();
+    auto last_packet_time = start;
     while(true)
     {
         int received= sm.receiveFrom(socket, buffer,1024, ip_server, port );
@@ -57,6 +66,16 @@ void UDPDownload::run_size_test(TCPClient &client)
             break;
         }
         total_received+=received;
+
+        //limitare la bitrate ales
+        auto current_time = std::chrono::steady_clock::now();
+        auto time_since_last = current_time - last_packet_time;
+        if(time_since_last < packet_interval)
+        {
+            std::this_thread::sleep_for(packet_interval - time_since_last);
+        }
+        
+        last_packet_time = std::chrono::steady_clock::now();
     }
     sm.closeSocket(socket);
     auto now = std::chrono::steady_clock::now();
@@ -78,14 +97,16 @@ void UDPDownload::run_time_test(TCPClient &client)
     int socket = sm.createUdpSocket(port);
     std::cout<<"Created udp socket\n";
     std::string ip_server;
-
     int expected_seq = 0;
     int total_frames_lost = 0;
     int total_bytes_received = 0;
     int total_frames_received = 0;
     char buffer[1025];
+    const size_t avg_packet_size = 1024;
+    auto packet_interval = calculatePacketInterval(avg_packet_size);
     std::cout<<"Ready to receive frames\n";
     auto start = std::chrono::steady_clock::now();
+    auto last_packet_time = start;
     while(true)
     {
         auto now = std::chrono::steady_clock::now();
@@ -113,11 +134,20 @@ void UDPDownload::run_time_test(TCPClient &client)
             total_frames_received++;
             total_bytes_received +=received;
         }
-        else{
+        else
+        {
             int frame_received = frame["sequence_number"];
             total_frames_lost = frame_received - expected_seq;
             expected_seq=frame_received + 1;
         }
+        auto current_time = std::chrono::steady_clock::now();
+        auto time_since_last = current_time - last_packet_time;
+        
+        if(time_since_last < packet_interval) {
+            std::this_thread::sleep_for(packet_interval - time_since_last);
+        }
+        
+        last_packet_time = std::chrono::steady_clock::now();
     }
     sm.closeSocket(socket);
     json results;
@@ -125,4 +155,11 @@ void UDPDownload::run_time_test(TCPClient &client)
     results["total_bytes_received"]=total_bytes_received;
     results["total_frames_received"]=total_frames_received;
     client.send_data(results.dump());
+}
+
+
+std::chrono::microseconds UDPDownload::calculatePacketInterval(size_t packet_size)
+{
+    uint64_t interval_us = (packet_size * 8 * 1000000ULL) / _bitrate_bps; //transform secunde in us si vad care e intervalul
+    return std::chrono::microseconds(interval_us);
 }

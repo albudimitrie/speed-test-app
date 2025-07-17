@@ -18,6 +18,7 @@ struct ClientConfig {
     uint64_t bytes_to_send = UINT64_MAX;
 
     int disk_block_size = -1;
+    uint64_t bitrate = 0;
 };
 class TestManager
 {

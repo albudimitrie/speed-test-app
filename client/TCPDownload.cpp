@@ -15,6 +15,10 @@ void TCPDownload::run(TCPClient &client)
     uint64_t total_received = 0;
     int received=0;
     char buffer[BUFFER_SIZE + 1];
+    if(_duration == -1)
+    {
+        _duration = 10;
+    }
     //folosesc clock ca sa ma asigur ca nu primesc mai mult de _duration secunde, e o metoda de precautie
     //testul se opreste dupa ce recv primeste 0 sau <0, serverul face shutdown dupa cele 10 secunde
 
@@ -49,7 +53,6 @@ void TCPDownload::run(TCPClient &client)
     //trimit la server cat am primit ca el sa calculeze si sa mi trimita inapoi rezutlatele
     //trimit rezultatele la socketul original
     json response;
-    std::cout<<"Am primit "<<total_received<<std::endl;
     response["total_received"]=total_received;
     client.send_data(response.dump());
     

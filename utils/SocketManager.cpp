@@ -132,7 +132,6 @@ int SocketManager::receiveFrom(int socket_fd, char* buffer, int len, std::string
         sender_ip = std::string(ip_buf);
         sender_port = ntohs(sender_addr.sin_port);
     }
-
     return bytes_received;
 }
 std::string SocketManager::receiveFrom(int socket_fd, int len, std::string &sender_ip, int &sender_port)

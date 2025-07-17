@@ -1,11 +1,12 @@
 #pragma once
 #include "iTest.h"
 class TCPClient;
-class TCPLatency : public iTest
+class UDPLatency : public iTest
 {
+
 public:
-    TCPLatency();
-    virtual ~TCPLatency()=default;
+    UDPLatency();
+    virtual ~UDPLatency()=default;
     virtual std::string get_test_type()override {return _test_type;}
     virtual void run(TCPClient &client)override;
 

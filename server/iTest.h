@@ -22,7 +22,9 @@ public:
     static iTest * makeTcpDownloadTest(int duration, json &stats);
     static iTest *makeTcpUploadTest(int duration, uint64_t bytes_to_send, json& stats, std::string client_addr);
     static iTest *makeTCPLatencyTest(json &stats);
-    static iTest *makeUDPDownloadTest(int duration, uint64_t bytes_to_send, json &stats, std::string client_addr);
+    static iTest *makeUDPDownloadTest(int duration, uint64_t bytes_to_send, json &stats, std::string client_addr, uint64_t bitrate);
+    static iTest *makeUDPLatencyTest(json &stats, std::string client_address);
+    static iTest *makeUDPUploadTest(int duration, uint64_t bytes_to_send, json &stats, std::string client_addr, uint64_t bitrate);
 };
 
 

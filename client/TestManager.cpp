@@ -13,7 +13,9 @@ TestManager::TestManager(ClientConfig &config)
     add_test(TestFactory::makeTCPUploadSizeTest(config.bytes_to_send));
     add_test(TestFactory::makeTCPUploadTimeTest(config.duration_seconds));
     add_test(TestFactory::makeTCPLatencyTest());
-    add_test(TestFactory::makeUDPDownloadTest(config.duration_seconds, config.bytes_to_send));
+    add_test(TestFactory::makeUDPDownloadTest(config.duration_seconds, config.bytes_to_send, config.bitrate));
+    add_test(TestFactory::makeUDPLatencytest());
+    add_test(TestFactory::makeUDPUploadtest(config.duration_seconds, config.bytes_to_send, config.bitrate));
 }
 void TestManager::send_config_to_server(TCPClient &client)
 {   
@@ -23,44 +25,48 @@ void TestManager::send_config_to_server(TCPClient &client)
     {
         config_json["test_type"]="NETWORK_TEST";
     }
-    else{
+    else
+    {
         config_json["test_type"]="DISK_TEST";
     }
     if(_config.protocol == Protocol::TCP)
     {
         config_json["protocol"]="TCP";
     }
-    else{
+    else
+    {
         config_json["protocol"]="UDP";
     }
     config_json["duration"]=_config.duration_seconds;
     config_json["bytes_to_send"]=_config.bytes_to_send;
     config_json["disk_block_size"]=_config.disk_block_size;
+    config_json["bitrate"]=_config.bitrate;
     std::string config_str = config_json.dump();
     client.send_data(config_str);
 }
 std::string TestManager::receive_results_from_server(TCPClient &client)
 {
-    //TODO
     std::string res_str = client.receive_data(1024);
     return res_str;
-
 }
 void TestManager::print_statistics(std::string result_string)
 {
     _stats=json::parse(result_string);
     if(_config.json_output)
     {
+        std::cout<<std::endl<<std::endl;
         std::cout<<_stats.dump(4);
     }
     else
     {
         if(_config.protocol==Protocol::TCP)
         {
+            std::cout<<std::endl<<std::endl;
             print_tcp_nicely();
         }
         else if(_config.protocol==Protocol::UDP)
         {
+            std::cout<<std::endl<<std::endl;
             print_udp_nicely();
         }
         else{
@@ -71,11 +77,6 @@ void TestManager::print_statistics(std::string result_string)
 }
 void TestManager::start_test(TCPClient &client)
 {
-    if(_config.test_type==TestType::Disk)
-    {
-        std::cout<<"Disk test\n";
-        
-    }
     //DOWNLOAD TEST
     if(_config.test_type == TestType::Network)
     {
@@ -121,9 +122,11 @@ void TestManager::threat_disk_test()
     test->run(client);
     if(_config.json_output)
     {
+        std::cout<<std::endl<<std::endl;
         std::cout<<_stats.dump(4);
     }
     else{
+        std::cout<<std::endl<<std::endl;
         print_disk_nicely();
     }
     delete test;
@@ -166,15 +169,15 @@ void TestManager::print_disk_nicely()
         else if (test.contains("total_written"))
             total = test["total_written"].is_number() ? test["total_written"].get<double>() : static_cast<double>(test["total_written"].get<int64_t>());
 
-        std::cout << "\n🔹 " << test_name << "\n";
-        std::cout << "   ▸ Total transferred : "
+        std::cout << "\n- " << test_name << "\n";
+        std::cout << "   - Total transferred : "
                   << format_unit(total / (1024.0 * 1024.0 * 1024.0), "GB") << "\n";
-        std::cout << "   ▸ Execution time    : "
+        std::cout << "   - Execution time    : "
                   << format_unit(test["elapsed"].get<double>(), "sec") << "\n";
-        std::cout << "   ▸ Block size        : "
+        std::cout << "   - Block size        : "
                   << format_bytes(test["block_size"].get<double>()) << "\n";
 
-        std::cout << "   ▸ Speeds:\n";
+        std::cout << "   - Speeds:\n";
         std::cout << "       - " << format_unit(test["MBps"].get<double>(), "MB/s") << "\n";
         std::cout << "       - " << format_unit(test["Mbps"].get<double>(), "Mbps") << "\n";
         std::cout << "       - " << format_unit(test["GBps"].get<double>(), "GB/s") << "\n";
@@ -217,5 +220,41 @@ void TestManager::print_tcp_nicely()
 }
 void TestManager::print_udp_nicely()
 {
-    
+       std::cout << "═══════════════════════════════════════\n";
+
+    if (_stats.contains("UDP_DOWNLOAD_TIME")) {
+        std::cout << "              UDP DOWNLOAD\n";
+        std::cout << "───────────────────────────────────────\n";
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << "  Speed       : " << _stats["UDP_DOWNLOAD_TIME"]["MBps"].get<double>() << " MB/s ("
+                  << _stats["UDP_DOWNLOAD_TIME"]["Mbps"].get<double>() << " Mbps)\n";
+        std::cout << "  Speed (Gbps): " << _stats["UDP_DOWNLOAD_TIME"]["Gbps"].get<double>() << " Gbps\n";
+        std::cout << "  Duration    : " << _stats["UDP_DOWNLOAD_TIME"]["elapsed"].get<double>() << " s\n";
+        std::cout << "  Loss        : "
+                  << std::setprecision(3)
+                  << _stats["UDP_DOWNLOAD_TIME"]["packets_loss_percent"].get<double>() << " %\n\n";
+    }
+
+    if (_stats.contains("UDP_UPLOAD_TIME")) {
+        std::cout << "              UDP UPLOAD\n";
+        std::cout << "───────────────────────────────────────\n";
+        std::cout << std::fixed << std::setprecision(2);
+        std::cout << "  Speed       : " << _stats["UDP_UPLOAD_TIME"]["MBps"].get<double>() << " MB/s ("
+                  << _stats["UDP_UPLOAD_TIME"]["Mbps"].get<double>() << " Mbps)\n";
+        std::cout << "  Speed (Gbps): " << _stats["UDP_UPLOAD_TIME"]["Gbps"].get<double>() << " Gbps\n";
+        std::cout << "  Duration    : " << _stats["UDP_UPLOAD_TIME"]["elapsed"].get<double>() << " s\n";
+        std::cout << "  Loss        : "
+                  << std::setprecision(3)
+                  << _stats["UDP_UPLOAD_TIME"]["packet_loss_percent"].get<double>() << " %\n\n";
+    }
+
+    if (_stats.contains("UDP_LATENCY")) {
+        std::cout << "              UDP LATENCY\n";
+        std::cout << "───────────────────────────────────────\n";
+        std::cout << std::fixed << std::setprecision(3);
+        std::cout << "  Avg Latency : " << _stats["UDP_LATENCY"]["average"].get<double>() << " ms\n";
+        std::cout << "  Tests       : " << _stats["UDP_LATENCY"]["tests"].get<int>() << "\n";
+    }
+
+    std::cout << "═══════════════════════════════════════\n";
 }

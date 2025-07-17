@@ -15,10 +15,11 @@ int main(int argc, char **argv)
         {
             testManager.threat_disk_test();
         }
-        else{
-        TCPClient client{config.port,config.address};
-        client.connect_to_server();
-        testManager.start_test(client);
+        else
+        {
+            TCPClient client{config.port,config.address};
+            client.connect_to_server();
+            testManager.start_test(client);
         }
     }
     catch(std::exception &e)
